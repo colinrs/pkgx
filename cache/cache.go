@@ -10,12 +10,13 @@ import (
 	"time"
 )
 
+// Item ...
 type Item struct {
 	Object     interface{}
 	Expiration int64
 }
 
-// Returns true if the item has expired.
+// Expired Returns true if the item has expired.
 func (item Item) Expired() bool {
 	if item.Expiration == 0 {
 		return false
@@ -24,14 +25,15 @@ func (item Item) Expired() bool {
 }
 
 const (
-	// For use with functions that take an expiration time.
+	// NoExpiration For use with functions that take an expiration time.
 	NoExpiration time.Duration = -1
-	// For use with functions that take an expiration time. Equivalent to
+	// DefaultExpiration For use with functions that take an expiration time. Equivalent to
 	// passing in the same expiration duration as was given to New() or
 	// NewFrom() when the cache was created (e.g. 5 minutes.)
 	DefaultExpiration time.Duration = 0
 )
 
+// Cache ...
 type Cache struct {
 	*cache
 	// If this is confusing, see the comment at the bottom of New()

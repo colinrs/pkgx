@@ -21,3 +21,23 @@ func WriteMsgToFile(filename string, msg string) (err error) {
 	}
 	return file.Sync()
 }
+
+// GetFileSize ...
+func GetFileSize(path string) (size int64, err error) {
+	var fi os.FileInfo
+	fi, err = os.Stat(path)
+	if nil != err {
+		return
+	}
+
+	size = fi.Size()
+	return
+}
+
+// FileIsExist ...
+func FileIsExist(path string) (isExist bool) {
+	_, err := os.Stat(path)
+
+	isExist = err == nil || os.IsExist(err)
+	return
+}
