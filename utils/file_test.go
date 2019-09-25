@@ -1,6 +1,8 @@
 package utils
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestWriteMsgToFile(t *testing.T) {
 	type args struct {
