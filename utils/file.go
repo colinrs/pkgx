@@ -65,6 +65,14 @@ func FileIsExist(path string) (isExist bool) {
 	return
 }
 
+// EnsureDir ...
+func EnsureDir(path string) {
+
+	if !FileIsExist(path) {
+		os.MkdirAll(path, 0777)
+	}
+}
+
 // PWD gets compiled executable file absolute path.
 func PWD() string {
 	path, _ := filepath.Abs(os.Args[0])
