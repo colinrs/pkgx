@@ -1,4 +1,4 @@
-package contains
+package set
 
 import (
 	"errors"
