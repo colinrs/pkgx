@@ -1,8 +1,11 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 )
@@ -22,6 +25,68 @@ func WriteMsgToFile(filename string, msg string) (err error) {
 		return err
 	}
 	return file.Sync()
+}
+
+// Download ...
+func Download(toFile, url string) error {
+	out, err := os.Create(toFile)
+	if err != nil {
+		return err
+	}
+
+	defer out.Close()
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+
+	if resp.Body == nil {
+		return fmt.Errorf("%s response body is nil", url)
+	}
+
+	defer resp.Body.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	return err
+}
+
+// ReadBytes ...
+func ReadBytes(cpath string) ([]byte, error) {
+	if !IsFileExists(cpath) {
+		return nil, fmt.Errorf("%s not exists", cpath)
+	}
+
+	if IsDirExists(cpath) {
+		return nil, fmt.Errorf("%s not file", cpath)
+	}
+
+	return ioutil.ReadFile(cpath)
+}
+
+// ReadString ...
+func ReadString(cpath string) (string, error) {
+	bs, err := ReadBytes(cpath)
+	if err != nil {
+		return "", err
+	}
+
+	return string(bs), nil
+}
+
+// ReadJSON ...
+func ReadJSON(cpath string, cptr interface{}) error {
+	bs, err := ReadBytes(cpath)
+	if err != nil {
+		return fmt.Errorf("cannot read %s: %s", cpath, err.Error())
+	}
+
+	err = json.Unmarshal(bs, cptr)
+	if err != nil {
+		return fmt.Errorf("cannot parse %s: %s", cpath, err.Error())
+	}
+
+	return nil
 }
 
 // WritePidFile ...
