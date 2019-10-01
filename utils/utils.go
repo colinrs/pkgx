@@ -5,20 +5,15 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"math/rand"
 	"os"
 	"regexp"
-	"runtime"
 	"text/template"
 	"time"
 
 	"github.com/jakehl/goid"
 	"github.com/wonderivan/logger"
 )
-
-var gomaxprocs = runtime.GOMAXPROCS
-var numCPU = runtime.NumCPU
 
 // GetUUIDV1 ...
 func GetUUIDV1() (uid string) {
@@ -134,18 +129,4 @@ func MakeMd5(obj interface{}, length int) string {
 	h.Write([]byte(baseString))
 	s := hex.EncodeToString(h.Sum(nil))
 	return s[:length]
-}
-
-// UseMultipleCPUs sets GOMAXPROCS to the number of CPU cores unless it has
-// already been overridden by the GOMAXPROCS environment variable.
-func UseMultipleCPUs() {
-	if envGOMAXPROCS := os.Getenv("GOMAXPROCS"); envGOMAXPROCS != "" {
-		n := gomaxprocs(0)
-		fmt.Printf("GOMAXPROCS already set in environment to %q, %d internally\n",
-			envGOMAXPROCS, n)
-		return
-	}
-	n := numCPU()
-	fmt.Printf("setting GOMAXPROCS to %d\n", n)
-	gomaxprocs(n)
 }
