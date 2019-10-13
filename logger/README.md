@@ -21,10 +21,6 @@ convenient log package
     logger.Emer("this is Emergency")
 ```
 
-输出结果：
-
-![](images/output1.png)
-
 ## 2. 日志等级
 
 当前日志输出等级共8种，从0-7对应的等级由高到底，当配置为某个输出等级时，只有大于等于该等级的日志才会输出。不同的输出适配器支持不同的日志等级配置：
@@ -103,40 +99,6 @@ logger当前支持控制台、文件、网络3种方式适配器输出，可以�
 | RFC3339Nano1 | "2006-01-02 15:04:05.999999999 -0700 MST" |
 | DEFAULT      | "2006-01-02 15:04:05"                     |
 
-- 时间格式打印：
-
-```
-========RFC1123Z time format========
-Thu, 02 Aug 2018 18:48:04 +0800 [DEBG] [github.com/wonderivan/logger/log_test.go:115] Debug RFC1123Z
-========Stamp time format========
-Aug  2 18:48:04 [DEBG] [github.com/wonderivan/logger/log_test.go:115] Debug Stamp
-========StampMilli time format========
-Aug  2 18:48:04.489 [DEBG] [github.com/wonderivan/logger/log_test.go:115] Debug StampMilli
-========StampNano time format========
-Aug  2 18:48:04.490002155 [DEBG] [github.com/wonderivan/logger/log_test.go:115] Debug StampNano
-========RubyDate time format========
-Thu Aug 02 18:48:04 +0800 2018 [DEBG] [github.com/wonderivan/logger/log_test.go:115] Debug RubyDate
-========RFC822 time format========
-02 Aug 18 18:48 CST [DEBG] [github.com/wonderivan/logger/log_test.go:115] Debug RFC822
-========RFC822Z time format========
-02 Aug 18 18:48 +0800 [DEBG] [github.com/wonderivan/logger/log_test.go:115] Debug RFC822Z
-========RFC1123 time format========
-Thu, 02 Aug 2018 18:48:04 CST [DEBG] [github.com/wonderivan/logger/log_test.go:115] Debug RFC1123
-========RFC3339 time format========
-2018-08-02T18:48:04+08:00 [DEBG] [github.com/wonderivan/logger/log_test.go:115] Debug RFC3339
-========RFC3339Nano time format========
-2018-08-02T18:48:04.490377325+08:00 [DEBG] [github.com/wonderivan/logger/log_test.go:115] Debug RFC3339Nano
-========ANSIC time format========
-Thu Aug  2 18:48:04 2018 [DEBG] [github.com/wonderivan/logger/log_test.go:115] Debug ANSIC
-========UnixDate time format========
-Thu Aug  2 18:48:04 CST 2018 [DEBG] [github.com/wonderivan/logger/log_test.go:115] Debug UnixDate
-========RFC850 time format========
-Thursday, 02-Aug-18 18:48:04 CST [DEBG] [github.com/wonderivan/logger/log_test.go:115] Debug RFC850
-========Kitchen time format========
-6:48PM [DEBG] [github.com/wonderivan/logger/log_test.go:115] Debug Kitchen
-========StampMicro time format========
-Aug  2 18:48:04.490662 [DEBG] [github.com/wonderivan/logger/log_test.go:115] Debug StampMicro
-```
 
 ## 4. 其他
 
