@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"crypto/md5"
+	"encoding/gob"
 	"encoding/hex"
 	"encoding/json"
 	"math/rand"
@@ -129,4 +130,15 @@ func MakeMd5(obj interface{}, length int) string {
 	h.Write([]byte(baseString))
 	s := hex.EncodeToString(h.Sum(nil))
 	return s[:length]
+}
+
+// GetBytes interface 转 byte
+func GetBytes(key interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	err := enc.Encode(key)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
