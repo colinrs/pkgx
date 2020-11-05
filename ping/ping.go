@@ -2,11 +2,11 @@ package ping
 
 import (
 	"encoding/binary"
+	"fmt"
 	"math/rand"
 	"net"
-	"time"
 	"os"
-	"fmt"
+	"time"
 
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
@@ -16,9 +16,7 @@ const (
 
 	// IPv4 ...
 	IPv4 = 1
- 
 )
-
 
 // IcmpPkg ...
 type IcmpPkg struct {
@@ -47,8 +45,6 @@ type ICMP struct {
 
 // Send ...
 func (icmpPkg *IcmpPkg) Send(ttl int) (hicmp ICMP) {
-
-
 
 	icmpPkg.conn, hicmp.Error = net.ListenPacket("ip4:icmp", "0.0.0.0")
 	if nil != hicmp.Error {
@@ -127,8 +123,8 @@ func (icmpPkg *IcmpPkg) Send(ttl int) (hicmp ICMP) {
 func Ping(IPAddr string, maxrtt time.Duration) (rtt float64, err error) {
 
 	var ip *net.IPAddr
-	ip ,err = net.ResolveIPAddr("ip", IPAddr)
-	if err != nil{
+	ip, err = net.ResolveIPAddr("ip", IPAddr)
+	if err != nil {
 		err = fmt.Errorf("invaild ip")
 		return
 	}
@@ -140,13 +136,13 @@ func Ping(IPAddr string, maxrtt time.Duration) (rtt float64, err error) {
 	icmpPkg.dest = ip
 	icmpPkg.maxrtt = maxrtt
 	icmpPkg.id = rand.Intn(65535)
-	icmpPkg.seq = os.Getpid()&0xffff
+	icmpPkg.seq = os.Getpid() & 0xffff
 	icmpPkg.msg = icmp.Message{
-		Type: ipv4.ICMPTypeEcho, 
-		Code: 0, 
+		Type: ipv4.ICMPTypeEcho,
+		Code: 0,
 		Body: &icmp.Echo{
-			ID: icmpPkg.id, 
-			Seq: icmpPkg.seq,
+			ID:   icmpPkg.id,
+			Seq:  icmpPkg.seq,
 			Data: []byte("ping-ping-ping"),
 		}}
 	icmpPkg.netmsg, err = icmpPkg.msg.Marshal(nil)

@@ -47,3 +47,9 @@ func ParseTimeStr2Time(timeStr string) (t time.Time, err error) {
 	}
 	return
 }
+
+// GetCurrentMilliTime ...
+func GetCurrentMilliTime() int64 {
+
+	return time.Now().UnixNano() / 1e6
+}
