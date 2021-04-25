@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	)
+)
 
 const (
 	defaultHTTPTimeout = 10
