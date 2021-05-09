@@ -1,48 +1,79 @@
 package fx
 
 import (
+	"errors"
 	"fmt"
 	"testing"
+	"time"
 )
 
-func T0() {
-	fmt.Print("t1 name:T0\n")
+func testFuncForNoneArgs() {
+	fmt.Print("t0 name:T0\n")
 }
 
-func T1(name string) {
+func testFuncForOneArgs(name string) {
 	fmt.Printf("t1 name:%s\n", name)
 }
 
-func T2(name string) error {
+func testFuncForOneArgsAndErr(name string) error {
 	fmt.Printf("t2 name:%s\n", name)
 	return nil
 }
 
-func T3(name string) (string, error) {
+func testFuncForOneArgsAndResultWithErr(name string) (string, error) {
 	fmt.Printf("t3 name:%s\n", name)
-	return name, nil
+	return fmt.Sprintf("%s_%s", "T3", name), nil
 }
 
-func TestMR_Run(t *testing.T) {
+func testFuncForThreeArgsAndResultWithErr(name string, name2 string, sleep time.Duration) (string, error) {
+	time.Sleep(sleep)
+	fmt.Printf("t4 name:%s, name2:%s\n", name, name2)
+	return fmt.Sprintf("%s_%s_%s", "T4", name, name2), errors.New("xxx")
+}
+
+func TestConcurrent_Run(t *testing.T) {
 	type tcast struct {
 		name string
-		MR   *MR
+		Concurrent   *Concurrent
 	}
-	mr1 := NewMR()
-	name := "name"
-	mr1.AddFunc(T0)
-	mr1.AddFunc(T1, []interface{}{name})
-	mr1.AddFunc(T2, []interface{}{name})
-	mr1.AddFunc(T3, []interface{}{name})
-	tc := tcast{
-		name: "TestFor1",
-		MR:   mr1,
+	concurrentSuccess := NewConcurrent(WithTimeout(10 * time.Second))
+	name := "TestForSuccess"
+	concurrentSuccess.AddFunc(testFuncForNoneArgs, nil)
+	concurrentSuccess.AddFunc(testFuncForOneArgs, concurrentSuccess.GetParamValues(name))
+	concurrentSuccess.AddFunc(testFuncForOneArgsAndErr, concurrentSuccess.GetParamValues(name))
+	concurrentSuccess.AddFunc(testFuncForOneArgsAndResultWithErr, concurrentSuccess.GetParamValues(name))
+	concurrentSuccess.AddFunc(testFuncForThreeArgsAndResultWithErr, concurrentSuccess.GetParamValues(name, name, 5 * time.Second))
+	tcSuccess := tcast{
+		name: name,
+		Concurrent:   concurrentSuccess,
 	}
-	tests := []tcast{tc}
+	name = "TestForFailed"
+	concurrentFailed := NewConcurrent(WithTimeout(3 * time.Second))
+	concurrentFailed.AddFunc(testFuncForNoneArgs, nil)
+	concurrentFailed.AddFunc(testFuncForOneArgs, concurrentFailed.GetParamValues(name))
+	concurrentFailed.AddFunc(testFuncForOneArgsAndErr, concurrentFailed.GetParamValues(name))
+	concurrentFailed.AddFunc(testFuncForOneArgsAndResultWithErr, concurrentFailed.GetParamValues(name))
+	concurrentFailed.AddFunc(testFuncForThreeArgsAndResultWithErr, concurrentFailed.GetParamValues(name, name, 5 * time.Second))
+	tcFailed := tcast{
+		name: name,
+		Concurrent:   concurrentFailed,
+	}
+	tests := []tcast{tcSuccess, tcFailed}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.MR.Run()
-			fmt.Printf("Result:%+v\n", tt.MR.Result())
+			tt.Concurrent.Run()
+			result, err := tt.Concurrent.Result()
+			if err!=nil {
+				fmt.Printf("Concurrent err:%s\n", err.Error())
+				return
+			}
+			for index, values := range result {
+				fmt.Printf("============== index:%d\n", index)
+				for _, value := range values {
+					fmt.Printf("Result:%T,%+v\n", value, value)
+				}
+			}
+			return
 		})
 	}
 }

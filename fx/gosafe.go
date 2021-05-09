@@ -6,6 +6,8 @@ import (
 	"github.com/colinrs/pkgx/utils"
 )
 
+
+
 // GoSafe runs the given fn using another goroutine, recovers if fn panics.
 func GoSafe(fn func()) {
 	go RunSafe(fn)
