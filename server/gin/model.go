@@ -1,20 +1,21 @@
 package gin
 
+type Model interface {
+	Init(engine *Engine) error
+}
 
-// EnvGinMode indicates environment name for gin mode.
-const EnvGinMode = "GIN_MODE"
+func (engine *Engine) registerModelToRouter()  error{
+	var err error
+	for _, model := range engine.models{
+		if err = model.Init(engine);err!=nil{
+			return err
+		}
+	}
+	return nil
+}
 
-const (
-	// DebugMode indicates gin mode is debug.
-	DebugMode = "debug"
-	// ReleaseMode indicates gin mode is release.
-	ReleaseMode = "release"
-	// TestMode indicates gin mode is test.
-	TestMode = "test"
-)
-
-const (
-	debugCode = iota
-	releaseCode
-	testCode
-)
+func (engine *Engine) RegisterModel(models []Model)  {
+	engine.lock.Lock()
+	engine.models = append(engine.models, models...)
+	engine.lock.Unlock()
+}
