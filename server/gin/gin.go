@@ -22,7 +22,7 @@ type Engine struct {
 	responses Responses
 	hook shutdown.Hook
 	errChan chan error
-	response
+	errDecode Decode
 }
 
 // Default returns an Engine instance with the Logger and Recovery middleware already attached.
@@ -39,6 +39,7 @@ func Default() *Engine {
 	}
 	engine.serverPlugin = newDefaultServerPlugin(engine)
 	engine.responses = newDefaultResponses()
+	engine.errDecode = newDefaultDecode()
 	return engine
 }
 
@@ -179,7 +180,7 @@ func wrapHandler(engine *Engine, impl interface{}) rgin.HandlerFunc{
 			req := reqParam.Interface()
 			err = c.ShouldBind(req)
 			if err != nil {
-				engine.responses.Response(c, "ShouldBind", err)
+				engine.responses.Response(c, "ShouldBind", err, engine.errDecode)
 				c.Abort()
 				return nil
 			}
@@ -187,7 +188,7 @@ func wrapHandler(engine *Engine, impl interface{}) rgin.HandlerFunc{
 				err = request.Validator(ctx)
 			}
 			if err != nil {
-				engine.responses.Response(c, "Validator", err)
+				engine.responses.Response(c, "Validator", err, engine.errDecode)
 				c.Abort()
 				return nil
 			}
@@ -197,7 +198,7 @@ func wrapHandler(engine *Engine, impl interface{}) rgin.HandlerFunc{
 		if !ret[1].IsNil() {
 			err = ret[1].Interface().(error)
 		}
-		engine.responses.Response(c, ret[0].Interface(), err)
+		engine.responses.Response(c, ret[0].Interface(), err, engine.errDecode)
 		return nil
 
 	}

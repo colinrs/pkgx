@@ -6,7 +6,7 @@ import (
 )
 
 type Responses interface {
-	Response(*gin.Context, interface{}, error )
+	Response(*gin.Context, interface{}, error, Decode)
 }
 
 type Output interface {
@@ -25,14 +25,15 @@ type response struct {
 
 }
 
-func (d *DefaultResponses) Response(ctx *gin.Context, result interface{}, err error){
-	// 自己的实现的 Responses 接口可以在这里实现错误err处理
+func (d *DefaultResponses) Response(ctx *gin.Context, result interface{}, err error, DecodeImp Decode){
+	// 可以在这里实现错误err处理
+	code, message := DecodeImp.DecodeErr(err)
 	if out, ok := result.(Output);ok{
 		out.Output() // 在输出的时候自己做转换
 	}
 	ctx.JSON(http.StatusOK, response{
-		Code: 0,
-		Message: "",
+		Code: uint64(code),
+		Message: message,
 		Data: result,
 	})
 }
