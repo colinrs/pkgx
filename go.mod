@@ -1,6 +1,6 @@
 module github.com/colinrs/pkgx
 
-go 1.12
+go 1.15
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -10,5 +10,3 @@ require (
 	github.com/wonderivan/logger v1.0.0
 	golang.org/x/net v0.0.0-20201031054903-ff519b6c9102
 )
-
-replace github.com/colinrs/pkgx/shutdown v0.0.1 => github.com/colinrs/pkgx/shutdown v0.0.1
