@@ -12,8 +12,9 @@ import (
 )
 type Engine struct {
 	*rgin.Engine
-	pprof bool
-	healthCheck bool
+	enablePprof bool
+	enableHealthCheck bool
+	enablePrometheus bool
 	models []Model
 	lock sync.RWMutex
 	resourceCleanup []func()
@@ -31,8 +32,9 @@ func Default() *Engine {
 	reneging := rgin.Default()
 	engine := &Engine{
 		Engine:reneging,
-		pprof:true,
-		healthCheck:true,
+		enablePprof:true,
+		enableHealthCheck:true,
+		enablePrometheus: true,
 		models: []Model{},
 		hook: shutdown.NewHook(),
 		errChan: make(chan error),
@@ -49,8 +51,9 @@ func New() *Engine {
 	reneging := rgin.New()
 	engine := &Engine{
 		Engine:reneging,
-		pprof:true,
-		healthCheck:true,
+		enablePprof: true,
+		enableHealthCheck: true,
+		enablePrometheus: true,
 		models: []Model{},
 		hook: shutdown.NewHook(),
 	}
@@ -84,10 +87,10 @@ func (engine *Engine) Run(addr ...string) (err error) {
 }
 
 func (engine *Engine) registerAPI(){
-	if engine.healthCheck{
+	if engine.enableHealthCheck{
 		engine.Engine.GET("/health", Health)
 	}
-	if engine.pprof{
+	if engine.enablePprof{
 		pprof.Register(engine.Engine)
 	}
 	if err := engine.registerModelToRouter();err!=nil{
