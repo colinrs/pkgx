@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/jakehl/goid"
-	"github.com/wonderivan/logger"
+	"github.com/colinrs/pkgx/logger"
 )
 
 // GetUUIDV1 ...
@@ -141,4 +141,16 @@ func GetBytes(key interface{}) ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+
+// Struct2Map struct to map
+func Struct2Map(obj interface{}) (map[string]interface{}, error) {
+	var ret map[string]interface{}
+	jsonStr, _ := json.Marshal(obj)
+	err := json.Unmarshal(jsonStr, &ret)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
