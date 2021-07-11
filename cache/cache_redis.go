@@ -16,6 +16,7 @@ var (
 	// make the unstable expiry to be [0.95, 1.05] * seconds
 	expiryDeviation = 0.05
 	defaultExpire = 5*time.Minute
+	NoneValue = []byte("NoneValue")
 )
 
 type RedisConfig struct {
@@ -126,7 +127,10 @@ func (r *RedisCacheClient) Get(ctx context.Context, key string, fetch fetchFunc)
 				v, e := fetch()
 				if e != nil {
 					logger.Error("get redis key: %v, from fetch error: %v", fullKey, e)
-					return nil, e
+					// set none value
+					expiration := r.unstableExpiry.AroundDuration(r.DefaultExpire)
+					_ = r.localCache.Set(fullKeyByte, NoneValue, int(expiration.Seconds()))
+					return NoneValue, nil
 				}
 				expiration := r.unstableExpiry.AroundDuration(r.DefaultExpire)
 				b, _ = json.Marshal(fetchResult)
