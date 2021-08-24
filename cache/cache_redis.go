@@ -15,24 +15,23 @@ import (
 var (
 	// make the unstable expiry to be [0.95, 1.05] * seconds
 	expiryDeviation = 0.05
-	defaultExpire = 5*time.Minute
-	NoneValue = []byte("NoneValue")
+	defaultExpire   = 5 * time.Minute
+	NoneValue       = []byte("NoneValue")
 )
 
 type RedisConfig struct {
-	Addr        string `yaml:"addr" json:"addr"`
-	DB          int    `yaml:"db" json:"db"`
-	PoolSize    int    `yaml:"pool_size" json:"pool_size"`
-	IdleTimeout int    `yaml:"idle_timeout" json:"idle_timeout"`
-	Prefix      string `yaml:"prefix" json:"prefix"`
-	LocalCacheSize int `yaml:"local_cache_size" json:"local_cache_size"` // M
+	Addr           string `yaml:"addr" json:"addr"`
+	DB             int    `yaml:"db" json:"db"`
+	PoolSize       int    `yaml:"pool_size" json:"pool_size"`
+	IdleTimeout    int    `yaml:"idle_timeout" json:"idle_timeout"`
+	Prefix         string `yaml:"prefix" json:"prefix"`
+	LocalCacheSize int    `yaml:"local_cache_size" json:"local_cache_size"` // M
 }
 
 type flightGroup interface {
 	// Done is called when Do is done.
 	Do(key string, fn func() (interface{}, error)) (interface{}, error)
 }
-
 
 type RedisCacheClient struct {
 	client         *redis.Client
@@ -42,7 +41,7 @@ type RedisCacheClient struct {
 	unstableExpiry mathx.Unstable
 	loadGroup      flightGroup
 	DefaultExpire  time.Duration
-	localCache  *freecache.Cache
+	localCache     *freecache.Cache
 }
 
 var _ Cache = (*RedisCacheClient)(nil)
@@ -55,10 +54,10 @@ func getFullKey(prefix, key string) string {
 
 func InitCacheClient(conf *RedisConfig) Cache {
 	DefaultRedisClient = &RedisCacheClient{
-		status: newCacheStat(),
+		status:         newCacheStat(),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
-		loadGroup:  &singleflight.Group{},
-		DefaultExpire: defaultExpire,
+		loadGroup:      &singleflight.Group{},
+		DefaultExpire:  defaultExpire,
 		// conf.LocalCacheSize: M
 		localCache: freecache.NewCache(conf.LocalCacheSize * 1024 * 1024),
 	}
@@ -97,12 +96,11 @@ func (r *RedisCacheClient) Set(ctx context.Context, key string, value interface{
 	return nil
 }
 
-
 func (r *RedisCacheClient) Get(ctx context.Context, key string, fetch fetchFunc) (result []byte, err error) {
 	var byteValue []byte
 	fullKey := getFullKey(r.prefix, key)
 	fullKeyByte, _ := json.Marshal(fullKey)
-	if val, err := r.localCache.Get(fullKeyByte); err==nil {
+	if val, err := r.localCache.Get(fullKeyByte); err == nil {
 		r.status.IncrementLocalCacheHit()
 		return val, nil
 	}
@@ -116,7 +114,7 @@ func (r *RedisCacheClient) Get(ctx context.Context, key string, fetch fetchFunc)
 	// not found key
 	if err == redis.Nil {
 		r.status.IncrementMiss()
-		if fetch!=nil {
+		if fetch != nil {
 
 			var b []byte
 			_, err = r.loadGroup.Do(fullKey, func() (interface{}, error) {
@@ -171,7 +169,6 @@ func (r *RedisCacheClient) Del(ctx context.Context, key string) (err error) {
 	}
 	return nil
 }
-
 
 func (r *RedisCacheClient) AddPlugin(p Plugin) {
 	r.plugins = append(r.plugins, p)

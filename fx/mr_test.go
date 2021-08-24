@@ -33,8 +33,8 @@ func testFuncForThreeArgsAndResultWithErr(name string, name2 string, sleep time.
 
 func TestConcurrent_Run(t *testing.T) {
 	type tcast struct {
-		name string
-		Concurrent   *Concurrent
+		name       string
+		Concurrent *Concurrent
 	}
 	concurrentSuccess := NewConcurrent(WithTimeout(10 * time.Second))
 	name := "TestForSuccess"
@@ -42,10 +42,10 @@ func TestConcurrent_Run(t *testing.T) {
 	concurrentSuccess.AddFunc(testFuncForOneArgs, concurrentSuccess.GetParamValues(name))
 	concurrentSuccess.AddFunc(testFuncForOneArgsAndErr, concurrentSuccess.GetParamValues(name))
 	concurrentSuccess.AddFunc(testFuncForOneArgsAndResultWithErr, concurrentSuccess.GetParamValues(name))
-	concurrentSuccess.AddFunc(testFuncForThreeArgsAndResultWithErr, concurrentSuccess.GetParamValues(name, name, 5 * time.Second))
+	concurrentSuccess.AddFunc(testFuncForThreeArgsAndResultWithErr, concurrentSuccess.GetParamValues(name, name, 5*time.Second))
 	tcSuccess := tcast{
-		name: name,
-		Concurrent:   concurrentSuccess,
+		name:       name,
+		Concurrent: concurrentSuccess,
 	}
 	name = "TestForFailed"
 	concurrentFailed := NewConcurrent(WithTimeout(3 * time.Second))
@@ -53,17 +53,17 @@ func TestConcurrent_Run(t *testing.T) {
 	concurrentFailed.AddFunc(testFuncForOneArgs, concurrentFailed.GetParamValues(name))
 	concurrentFailed.AddFunc(testFuncForOneArgsAndErr, concurrentFailed.GetParamValues(name))
 	concurrentFailed.AddFunc(testFuncForOneArgsAndResultWithErr, concurrentFailed.GetParamValues(name))
-	concurrentFailed.AddFunc(testFuncForThreeArgsAndResultWithErr, concurrentFailed.GetParamValues(name, name, 5 * time.Second))
+	concurrentFailed.AddFunc(testFuncForThreeArgsAndResultWithErr, concurrentFailed.GetParamValues(name, name, 5*time.Second))
 	tcFailed := tcast{
-		name: name,
-		Concurrent:   concurrentFailed,
+		name:       name,
+		Concurrent: concurrentFailed,
 	}
 	tests := []tcast{tcSuccess, tcFailed}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.Concurrent.Run()
 			result, err := tt.Concurrent.Result()
-			if err!=nil {
+			if err != nil {
 				fmt.Printf("Concurrent err:%s\n", err.Error())
 				return
 			}

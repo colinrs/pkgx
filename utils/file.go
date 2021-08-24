@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
 )
 
 // WriteMsgToFile ....
@@ -222,4 +221,3 @@ func Zip(src, dst string) error {
 		return nil
 	})
 }
-

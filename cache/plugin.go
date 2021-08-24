@@ -7,7 +7,6 @@ import (
 	"github.com/go-redis/redis"
 )
 
-
 type Plugin interface {
 	OnSetRequestEnd(ctx context.Context, cmd string, elapsed int64, fullKey string, err error)
 	OnGetRequestEnd(ctx context.Context, cmd string, elapsed int64, fullKey string, err error)
@@ -19,11 +18,10 @@ type defaultCachePlugin struct {
 }
 
 const (
- OK = "OK"
- Success = "Success"
-	Failed = "Failed"
- )
-
+	OK      = "OK"
+	Success = "Success"
+	Failed  = "Failed"
+)
 
 var DefaultCachePlugin = &defaultCachePlugin{}
 

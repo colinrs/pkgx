@@ -6,8 +6,6 @@ import (
 	"github.com/colinrs/pkgx/utils"
 )
 
-
-
 // GoSafe runs the given fn using another goroutine, recovers if fn panics.
 func GoSafe(fn func()) {
 	go RunSafe(fn)
@@ -28,4 +26,3 @@ func Recover(cleanups ...func()) {
 		fmt.Printf("recove:%+v, stack:%s\n", p, utils.Stack())
 	}
 }
-
