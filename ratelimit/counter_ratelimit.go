@@ -22,8 +22,6 @@ type StandAloneCounterRateLimiter struct {
 	allowRequests   int32
 }
 
-var _ RateLimiter = new(StandAloneCounterRateLimiter)
-
 func NewStandAloneCounterRateLimiter(snippet time.Duration, allowRequests int32) *StandAloneCounterRateLimiter {
 	return &StandAloneCounterRateLimiter{snippet: snippet, allowRequests: allowRequests}
 }
