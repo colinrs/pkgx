@@ -9,26 +9,26 @@ func TestStruct2Map(t *testing.T) {
 	type args struct {
 		obj interface{}
 	}
-	type tcase struct{
+	type tcase struct {
 		name    string
 		args    args
 		want    map[string]interface{}
 		wantErr bool
 	}
-	type S struct{
+	type S struct {
 		TN string
 	}
-	tc1:= tcase{
-		name:"TestStruct2Map",
-		args:args{
+	tc1 := tcase{
+		name: "TestStruct2Map",
+		args: args{
 			obj: S{
-				TN:"xxxxx",
+				TN: "xxxxx",
 			},
 		},
-		want:map[string]interface{}{"TN":"xxxxx"},
+		want:    map[string]interface{}{"TN": "xxxxx"},
 		wantErr: false,
 	}
-	tests := []tcase {tc1}
+	tests := []tcase{tc1}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {

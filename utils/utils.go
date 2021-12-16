@@ -12,8 +12,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/jakehl/goid"
 	"github.com/colinrs/pkgx/logger"
+	"github.com/jakehl/goid"
 )
 
 // GetUUIDV1 ...
@@ -142,7 +142,6 @@ func GetBytes(key interface{}) ([]byte, error) {
 	}
 	return buf.Bytes(), nil
 }
-
 
 // Struct2Map struct to map
 func Struct2Map(obj interface{}) (map[string]interface{}, error) {

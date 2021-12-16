@@ -9,12 +9,11 @@ import (
 )
 
 const (
-	cmdGet    = "get"
-	cmdSet    = "set"
-	cmdDel    = "del"
+	cmdGet = "get"
+	cmdSet = "set"
+	cmdDel = "del"
 
-	statInterval     = time.Minute
-
+	statInterval = time.Minute
 )
 
 type fetchFunc func() (interface{}, error)
@@ -22,22 +21,20 @@ type fetchFunc func() (interface{}, error)
 // Cache ...
 type Cache interface {
 	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) (err error)
-	Get(ctx context.Context, key string, fetch fetchFunc) (result []byte,err error)
+	Get(ctx context.Context, key string, fetch fetchFunc) (result []byte, err error)
 	Del(ctx context.Context, key string) (err error)
 	AddPlugin(p Plugin)
 }
 
 type cacheStat struct {
-	hit          uint64
-	miss         uint64
-	localCacheHit uint64
+	hit            uint64
+	miss           uint64
+	localCacheHit  uint64
 	localCacheMiss uint64
 }
 
-
 func newCacheStat() *cacheStat {
-	st := &cacheStat{
-	}
+	st := &cacheStat{}
 	go st.statLoop()
 	return st
 }
@@ -72,8 +69,7 @@ func (cs *cacheStat) statLoop() {
 			continue
 		}
 		percent := 100 * float32(hit+localCacheHit) / float32(total)
-		logger.Info("hit_ratio: %0.2f, elements get total: %d, hit: %d, miss: %d, local cache hit:%d, local cache miss:%d" ,
+		logger.Info("hit_ratio: %0.2f, elements get total: %d, hit: %d, miss: %d, local cache hit:%d, local cache miss:%d",
 			percent, total, hit, miss, localCacheHit, localCacheMiss)
 	}
 }
-
