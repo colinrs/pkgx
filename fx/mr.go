@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	DefaultTimeOut = 600 * time.Second
+	defaultTimeOut           = 600 * time.Second
+	defaultGoConcurrentLimit = 1000
 )
 
 var (
@@ -23,7 +24,8 @@ type Func func()
 type Option func(opts *ConcurrentOptions)
 
 type ConcurrentOptions struct {
-	timeout time.Duration
+	timeout           time.Duration
+	goConcurrentLimit int
 }
 
 type Concurrent struct {
@@ -37,12 +39,13 @@ type Concurrent struct {
 }
 
 func NewConcurrent(options ...Option) *Concurrent {
-	concurrentOptions := new(ConcurrentOptions)
-	concurrentOptions.timeout = DefaultTimeOut // default time out
 	concurrent := &Concurrent{
-		waitGroup:         RoutineGroup{},
-		fgsCount:          0,
-		concurrentOptions: concurrentOptions,
+		waitGroup: RoutineGroup{},
+		fgsCount:  0,
+		concurrentOptions: &ConcurrentOptions{
+			timeout:           defaultTimeOut, // default time out
+			goConcurrentLimit: defaultGoConcurrentLimit,
+		},
 	}
 	for _, option := range options {
 		option(concurrent.concurrentOptions)
@@ -119,5 +122,11 @@ func (concurrent *Concurrent) Result() ([][]interface{}, error) {
 func WithTimeout(timeout time.Duration) Option {
 	return func(ConcurrentOptions *ConcurrentOptions) {
 		ConcurrentOptions.timeout = timeout
+	}
+}
+
+func WithGoConcurrentLimit(limit int) Option {
+	return func(ConcurrentOptions *ConcurrentOptions) {
+		ConcurrentOptions.goConcurrentLimit = limit
 	}
 }
