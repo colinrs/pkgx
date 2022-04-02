@@ -7,12 +7,13 @@ import (
 	"reflect"
 	"time"
 
+	concurrentpkg "github.com/colinrs/pkgx/concurrent"
 	"github.com/colinrs/pkgx/contextx"
 )
 
 const (
 	defaultTimeOut           = 600 * time.Second
-	defaultGoConcurrentLimit = 1000
+	defaultGoConcurrentLimit = 10000
 )
 
 var (
@@ -50,6 +51,7 @@ func NewConcurrent(options ...Option) *Concurrent {
 	for _, option := range options {
 		option(concurrent.concurrentOptions)
 	}
+	concurrent.waitGroup.Limit = concurrentpkg.NewLimit(concurrent.concurrentOptions.goConcurrentLimit)
 	return concurrent
 }
 
