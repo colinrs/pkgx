@@ -36,7 +36,7 @@ func TestConcurrent_Run(t *testing.T) {
 		name       string
 		Concurrent *Concurrent
 	}
-	concurrentSuccess := NewConcurrent(WithTimeout(10 * time.Second))
+	concurrentSuccess := NewConcurrent(WithTimeout(10*time.Second), WithGoConcurrentLimit(2))
 	name := "TestForSuccess"
 	concurrentSuccess.AddFunc(testFuncForNoneArgs, nil)
 	concurrentSuccess.AddFunc(testFuncForOneArgs, concurrentSuccess.GetParamValues(name))
