@@ -15,6 +15,6 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/tal-tech/go-zero v1.1.8
 	github.com/wonderivan/logger v1.0.0
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
+	golang.org/x/net v0.7.0
 
 )
