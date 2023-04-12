@@ -6,8 +6,10 @@ import (
 	"encoding/gob"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"math/rand"
 	"os"
+	"reflect"
 	"regexp"
 	"text/template"
 	"time"
@@ -152,4 +154,24 @@ func Struct2Map(obj interface{}) (map[string]interface{}, error) {
 		return nil, err
 	}
 	return ret, nil
+}
+
+func SetValue(source interface{}, dest interface{}) error {
+	receiverValue := reflect.ValueOf(dest).Elem()
+	if receiverValue.CanSet() {
+		if source != nil {
+			valBytes, err := json.Marshal(source)
+			if err != nil {
+				return errors.New("cache:val_marshal_err")
+			}
+			err = json.Unmarshal(valBytes, dest)
+			if err != nil {
+				return errors.New("cache:val_unmarshal_err")
+			}
+			return nil
+		}
+		receiverValue.Set(reflect.Zero(receiverValue.Type()))
+		return nil
+	}
+	return errors.New("cache:receiver_not_pointer")
 }

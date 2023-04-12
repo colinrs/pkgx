@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -42,4 +43,51 @@ func TestStruct2Map(t *testing.T) {
 			}
 		})
 	}
+}
+
+type Person struct {
+	Name string
+}
+
+func TestSetValueV2(t *testing.T) {
+	var sInt *int
+	err := SetValue(2, &sInt)
+	if err != nil {
+		return
+	}
+	if sInt != nil && *sInt == 2 {
+		fmt.Printf("s:%d\n", *sInt)
+	}
+
+	var sBool *bool
+	err = SetValue(true, &sBool)
+	if err != nil {
+		return
+	}
+	if sBool != nil {
+		fmt.Printf("s:%v\n", *sBool)
+	}
+
+	var sStruct1 *Person
+	err = SetValue(&Person{
+		Name: "sStruct1",
+	}, &sStruct1)
+	if err != nil {
+		return
+	}
+	if sStruct1 != nil {
+		fmt.Printf("sStruct11:%+v\n", sStruct1)
+	}
+
+	var sStruct2 *Person
+	err = SetValue(Person{
+		Name: "sStruct2",
+	}, &sStruct2)
+	if err != nil {
+		return
+	}
+	if sStruct2 != nil {
+		fmt.Printf("sStruct2:%+v\n", sStruct2)
+	}
+
 }
