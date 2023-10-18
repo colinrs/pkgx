@@ -3,12 +3,17 @@ package bloom
 import (
 	"context"
 	"errors"
-	"hash"
 	"strconv"
 	"time"
 
-	"github.com/go-redis/redis"
+	"github.com/colinrs/pkgx/md5"
 )
+
+type Cache interface {
+	DeleteKey(ctx context.Context, key string) (int64, error)
+	KeyExpire(ctx context.Context, key string, expiration time.Duration) bool
+	Eval(ctx context.Context, script string, keys []string, args ...interface{}) (val interface{}, err error)
+}
 
 const (
 	// for detailed error rate table, see http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html
@@ -51,7 +56,7 @@ type (
 // elements - means how many actual elements
 // when maps = 14, formula: 0.7*(bits/maps), bits = 20*elements, the error rate is 0.000067 < 1e-4
 // for detailed error rate table, see http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html
-func New(store redis.Cache, key string, bits uint) *Filter {
+func New(store Cache, key string, bits uint) *Filter {
 	return &Filter{
 		bits:   bits,
 		bitSet: newRedisBitSet(store, key, bits),
@@ -81,7 +86,7 @@ func (f *Filter) Exists(ctx context.Context, data []byte) (bool, error) {
 func (f *Filter) getLocations(data []byte) []uint {
 	locations := make([]uint, maps)
 	for i := uint(0); i < maps; i++ {
-		hashValue := hash.Hash(append(data, byte(i)))
+		hashValue := md5.Hash(append(data, byte(i)))
 		locations[i] = uint(hashValue % uint64(f.bits))
 	}
 
@@ -89,12 +94,12 @@ func (f *Filter) getLocations(data []byte) []uint {
 }
 
 type redisBitSet struct {
-	store redis.Cache
+	store Cache
 	key   string
 	bits  uint
 }
 
-func newRedisBitSet(store redis.Cache, key string, bits uint) *redisBitSet {
+func newRedisBitSet(store Cache, key string, bits uint) *redisBitSet {
 	return &redisBitSet{
 		store: store,
 		key:   key,
@@ -104,15 +109,12 @@ func newRedisBitSet(store redis.Cache, key string, bits uint) *redisBitSet {
 
 func (r *redisBitSet) buildOffsetArgs(offsets []uint) ([]string, error) {
 	var args []string
-
 	for _, offset := range offsets {
 		if offset >= r.bits {
 			return nil, ErrTooLargeOffset
 		}
-
 		args = append(args, strconv.FormatUint(uint64(offset), 10))
 	}
-
 	return args, nil
 }
 
@@ -122,17 +124,13 @@ func (r *redisBitSet) check(ctx context.Context, offsets []uint) (bool, error) {
 		return false, err
 	}
 	resp, err := r.store.Eval(ctx, testScript, []string{r.key}, args)
-\	if err == redis.Nil {
-		return false, nil
-	} else if err != nil {
+	if err != nil {
 		return false, err
 	}
-
 	exists, ok := resp.(int64)
 	if !ok {
 		return false, nil
 	}
-
 	return exists == 1, nil
 }
 
@@ -151,9 +149,8 @@ func (r *redisBitSet) set(ctx context.Context, offsets []uint) error {
 		return err
 	}
 	_, err = r.store.Eval(ctx, setScript, []string{r.key}, args)
-	if err == redis.Nil {
-		return nil
+	if err != nil {
+		return err
 	}
-
-	return err
+	return nil
 }
