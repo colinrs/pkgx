@@ -1,4 +1,4 @@
-package safemap
+package structx
 
 import (
 	"sync"

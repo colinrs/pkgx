@@ -1,4 +1,4 @@
-package set
+package structx
 
 // Set ... TODO https://github.com/deckarep/golang-set/blob/master/set.go
 type Set interface {

@@ -9,9 +9,11 @@ import (
 )
 
 const (
-	cmdGet = "get"
-	cmdSet = "set"
-	cmdDel = "del"
+	cmdGet   = "get"
+	cmdSet   = "set"
+	cmdDel   = "del"
+	cmdSetNX = "setnx"
+	cmdTTL   = "ttl"
 
 	statInterval = time.Minute
 )
@@ -20,9 +22,12 @@ type fetchFunc func() (interface{}, error)
 
 // Cache ...
 type Cache interface {
-	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) (err error)
-	Get(ctx context.Context, key string, fetch fetchFunc) (result []byte, err error)
-	Del(ctx context.Context, key string) (err error)
+	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
+	SetNX(ctx context.Context, key string, value interface{}, expiration time.Duration) error
+	TTL(ctx context.Context, key string) (time.Duration, error)
+	Get(ctx context.Context, key string, fetch fetchFunc) ([]byte, error)
+	Del(ctx context.Context, key string) error
+	Expire(ctx context.Context, key string, expiration time.Duration) (bool, error)
 	AddPlugin(p Plugin)
 }
 

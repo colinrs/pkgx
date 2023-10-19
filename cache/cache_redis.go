@@ -98,6 +98,29 @@ func (r *RedisCacheClient) Set(ctx context.Context, key string, value interface{
 	return nil
 }
 
+func (r *RedisCacheClient) SetNX(ctx context.Context, key string, value interface{}, expiration time.Duration) (err error) {
+	var byteValue []byte
+	startTime := time.Now()
+	fullKey := getFullKey(r.prefix, key)
+	fullKeyByte, _ := json.Marshal(fullKey)
+	if byteValue, err = json.Marshal(value); err != nil {
+		logger.Error("json.Marshal redis value: %v, error: %v", value, err)
+		return err
+	}
+	_ = r.localCache.Set(fullKeyByte, byteValue, int(expiration.Seconds()))
+	expiration = r.unstableExpiry.AroundDuration(expiration)
+	err = r.client.SetNX(ctx, fullKey, byteValue, expiration).Err()
+	elapsed := time.Since(startTime).Milliseconds()
+	for _, p := range r.plugins {
+		p.OnSetRequestEnd(ctx, cmdSetNX, elapsed, fullKey, err)
+	}
+	if err != nil {
+		logger.Error("set redis key: %v, error: %v", fullKey, err)
+		return err
+	}
+	return nil
+}
+
 func (r *RedisCacheClient) Get(ctx context.Context, key string, fetch fetchFunc) (result []byte, err error) {
 	var byteValue []byte
 	fullKey := getFullKey(r.prefix, key)
@@ -170,6 +193,28 @@ func (r *RedisCacheClient) Del(ctx context.Context, key string) (err error) {
 		return err
 	}
 	return nil
+}
+
+func (r *RedisCacheClient) TTL(ctx context.Context, key string) (time.Duration, error) {
+	fullKey := getFullKey(r.prefix, key)
+	startTime := time.Now()
+	ttl := r.client.TTL(ctx, key).Val()
+	elapsed := time.Since(startTime).Milliseconds()
+	for _, p := range r.plugins {
+		p.OnGetRequestEnd(ctx, cmdTTL, elapsed, fullKey, nil)
+	}
+	return ttl, nil
+}
+
+func (r *RedisCacheClient) Expire(ctx context.Context, key string, expiration time.Duration) (bool, error) {
+	fullKey := getFullKey(r.prefix, key)
+	startTime := time.Now()
+	ok, err := r.client.Expire(ctx, key, expiration).Result()
+	elapsed := time.Since(startTime).Milliseconds()
+	for _, p := range r.plugins {
+		p.OnGetRequestEnd(ctx, cmdTTL, elapsed, fullKey, err)
+	}
+	return ok, err
 }
 
 func (r *RedisCacheClient) AddPlugin(p Plugin) {
