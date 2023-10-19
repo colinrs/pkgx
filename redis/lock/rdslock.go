@@ -4,37 +4,35 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/garyburd/redigo/redis"
+	"github.com/colinrs/pkgx/cache"
+	"github.com/redis/go-redis/v9"
 )
 
 // RdsLock ...
 type RdsLock struct {
-	conn redis.Conn
+	conn cache.Cache
 }
 
 // NewLockWithPasswd ...
-func NewLockWithPasswd(dial, pswd string) (resLock *RdsLock, err error) {
-	rpswd := redis.DialPassword(pswd)
-	var rdsc redis.Conn
-	rdsc, err = redis.Dial("tcp", dial, rpswd)
-	if err != nil {
-		return
+func NewLockWithPasswd(dial, username, pswd string) (resLock *RdsLock, err error) {
+	config := cache.RedisConfig{
+		Addr:     dial,
+		Username: username,
+		Password: pswd,
 	}
 	resLock = &RdsLock{
-		conn: rdsc,
+		conn: cache.InitCacheClient(&config),
 	}
 	return
 }
 
 // NewLock ...
 func NewLock(dial string) (resLock *RdsLock, err error) {
-	var rdsc redis.Conn
-	rdsc, err = redis.Dial("tcp", dial)
-	if err != nil {
-		return
+	config := cache.RedisConfig{
+		Addr: dial,
 	}
 	resLock = &RdsLock{
-		conn: rdsc,
+		conn: cache.InitCacheClient(&config),
 	}
 	return
 }
@@ -43,7 +41,7 @@ func NewLock(dial string) (resLock *RdsLock, err error) {
 type Lock struct {
 	resource string
 	token    string
-	conn     redis.Conn
+	c        cache.Cache
 	timeout  int
 }
 
