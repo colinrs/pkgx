@@ -1,4 +1,4 @@
-package timewheel
+package structx
 
 import (
 	"container/list"

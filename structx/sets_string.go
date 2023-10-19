@@ -1,16 +1,16 @@
-package set
+package structx
 
 import (
 	"sort"
 )
 
-// Ints represents the classic "set" data structure, and contains ints.
-type Ints map[int]bool
+// Strings represents the classic "set" data structure, and contains strings.
+type Strings map[string]bool
 
-// NewInts creates and initializes an Ints and populates it with
+// NewStrings creates and initializes a Strings and populates it with
 // initial values as specified in the parameters.
-func NewInts(initial ...int) Ints {
-	result := make(Ints)
+func NewStrings(initial ...string) Strings {
+	result := make(Strings)
 	for _, value := range initial {
 		result.Add(value)
 	}
@@ -18,40 +18,40 @@ func NewInts(initial ...int) Ints {
 }
 
 // Size returns the number of elements in the set.
-func (is Ints) Size() int {
-	return len(is)
+func (s Strings) Size() int {
+	return len(s)
 }
 
 // IsEmpty is true for empty or uninitialized sets.
-func (is Ints) IsEmpty() bool {
-	return len(is) == 0
+func (s Strings) IsEmpty() bool {
+	return len(s) == 0
 }
 
 // Add puts a value into the set.
-func (is Ints) Add(value int) {
-	if is == nil {
+func (s Strings) Add(value string) {
+	if s == nil {
 		panic("uninitalised set")
 	}
-	is[value] = true
+	s[value] = true
 }
 
 // Remove takes a value out of the set. If value wasn't in the set to start
 // with, this method silently succeeds.
-func (is Ints) Remove(value int) {
-	delete(is, value)
+func (s Strings) Remove(value string) {
+	delete(s, value)
 }
 
 // Contains returns true if the value is in the set, and false otherwise.
-func (is Ints) Contains(value int) bool {
-	_, exists := is[value]
+func (s Strings) Contains(value string) bool {
+	_, exists := s[value]
 	return exists
 }
 
 // Values returns an unordered slice containing all the values in the set.
-func (is Ints) Values() []int {
-	result := make([]int, len(is))
+func (s Strings) Values() []string {
+	result := make([]string, len(s))
 	i := 0
-	for key := range is {
+	for key := range s {
 		result[i] = key
 		i++
 	}
@@ -59,19 +59,19 @@ func (is Ints) Values() []int {
 }
 
 // SortedValues returns an ordered slice containing all the values in the set.
-func (is Ints) SortedValues() []int {
-	values := is.Values()
-	sort.Ints(values)
+func (s Strings) SortedValues() []string {
+	values := s.Values()
+	sort.Strings(values)
 	return values
 }
 
-// Union returns a new Ints representing a union of the elments in the
+// Union returns a new Strings representing a union of the elments in the
 // method target and the parameter.
-func (is Ints) Union(other Ints) Ints {
-	result := make(Ints)
+func (s Strings) Union(other Strings) Strings {
+	result := make(Strings)
 	// Use the internal map rather than going through the friendlier functions
 	// to avoid extra allocation of slices.
-	for value := range is {
+	for value := range s {
 		result[value] = true
 	}
 	for value := range other {
@@ -80,13 +80,13 @@ func (is Ints) Union(other Ints) Ints {
 	return result
 }
 
-// Intersection returns a new Ints representing a intersection of the elments in the
+// Intersection returns a new Strings representing a intersection of the elments in the
 // method target and the parameter.
-func (is Ints) Intersection(other Ints) Ints {
-	result := make(Ints)
+func (s Strings) Intersection(other Strings) Strings {
+	result := make(Strings)
 	// Use the internal map rather than going through the friendlier functions
 	// to avoid extra allocation of slices.
-	for value := range is {
+	for value := range s {
 		if other.Contains(value) {
 			result[value] = true
 		}
@@ -94,13 +94,13 @@ func (is Ints) Intersection(other Ints) Ints {
 	return result
 }
 
-// Difference returns a new Ints representing all the values in the
+// Difference returns a new Strings representing all the values in the
 // target that are not in the parameter.
-func (is Ints) Difference(other Ints) Ints {
-	result := make(Ints)
+func (s Strings) Difference(other Strings) Strings {
+	result := make(Strings)
 	// Use the internal map rather than going through the friendlier functions
 	// to avoid extra allocation of slices.
-	for value := range is {
+	for value := range s {
 		if !other.Contains(value) {
 			result[value] = true
 		}

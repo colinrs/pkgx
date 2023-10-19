@@ -1,4 +1,4 @@
-package stack
+package structx
 
 // Stack ...
 type Stack struct {
