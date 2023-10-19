@@ -4,7 +4,6 @@ go 1.18
 
 require (
 	github.com/coocood/freecache v1.2.4
-	github.com/garyburd/redigo v1.6.4
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/jakehl/goid v1.1.0
