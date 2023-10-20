@@ -2,12 +2,9 @@ package utils
 
 import (
 	"bytes"
-	"crypto/md5"
 	"encoding/gob"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"math/rand"
 	"os"
 	"reflect"
 	"regexp"
@@ -15,31 +12,7 @@ import (
 	"time"
 
 	"github.com/colinrs/pkgx/logger"
-	"github.com/jakehl/goid"
 )
-
-// GetUUIDV1 ...
-func GetUUIDV1() (uid string) {
-	var u *goid.UUID
-	u = goid.NewV4UUID()
-	uid = u.String()
-	return
-}
-
-// GetUUIDV2 ...
-func GetUUIDV2(length int) (uid string) {
-	rand.Seed(time.Now().UTC().UnixNano())
-	time.Sleep(time.Nanosecond)
-
-	letter := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-	b := make([]rune, length)
-	for i := range b {
-		b[i] = letter[rand.Intn(len(letter))]
-	}
-
-	uid = string(b)
-	return
-}
 
 // InfoRender ...
 type InfoRender struct {
@@ -120,18 +93,6 @@ func IsFileExists(path string) bool {
 func IsNum(a string) bool {
 	reg, _ := regexp.Compile("^\\d+$")
 	return reg.MatchString(a)
-}
-
-// MakeMd5 ...
-func MakeMd5(obj interface{}, length int) string {
-	if length > 32 {
-		length = 32
-	}
-	h := md5.New()
-	baseString, _ := json.Marshal(obj)
-	h.Write([]byte(baseString))
-	s := hex.EncodeToString(h.Sum(nil))
-	return s[:length]
 }
 
 // GetBytes interface 转 byte

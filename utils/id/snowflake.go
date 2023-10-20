@@ -3,7 +3,7 @@
 // @link https://studygolang.com/articles/11409
 // @link https://www.sohu.com/a/232008315_453160
 
-package utils
+package id
 
 import (
 	"errors"
@@ -44,7 +44,7 @@ type Snowflake struct {
 	sequence  int64
 }
 
-// NewNode returns a new snowflake worker that can be used to generate snowflake IDs
+// NewSnowflake returns a new snowflake worker that can be used to generate snowflake IDs
 func NewSnowflake(workerID int64) (*Snowflake, error) {
 	if workerID < 0 || workerID > workerIDMax {
 		return nil, errors.New("workerID must be between 0 and 1023")

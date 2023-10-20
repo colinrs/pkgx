@@ -125,7 +125,7 @@ func (f *fileLogger) createLogFile() (*os.File, error) {
 	fd, err := os.OpenFile(f.Filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(perm))
 	if err == nil {
 		// Make sure file perm is user set perm cause of `os.OpenFile` will obey umask
-		os.Chmod(f.Filename, os.FileMode(perm))
+		_ = os.Chmod(f.Filename, os.FileMode(perm))
 	}
 	return fd, err
 }
@@ -248,10 +248,10 @@ RESTART_LOGGER:
 
 func (f *fileLogger) deleteOldLog() {
 	dir := filepath.Dir(f.Filename)
-	filepath.Walk(dir, func(path string, info os.FileInfo, err error) (returnErr error) {
+	_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) (returnErr error) {
 		defer func() {
 			if r := recover(); r != nil {
-				fmt.Fprintf(os.Stderr, "Unable to delete old log '%s', error: %v\n", path, r)
+				_, _ = fmt.Fprintf(os.Stderr, "Unable to delete old log '%s', error: %v\n", path, r)
 			}
 		}()
 
@@ -262,7 +262,7 @@ func (f *fileLogger) deleteOldLog() {
 		if f.MaxDays != -1 && !info.IsDir() && info.ModTime().Add(24*time.Hour*time.Duration(f.MaxDays)).Before(time.Now()) {
 			if strings.HasPrefix(filepath.Base(path), filepath.Base(f.fileNameOnly)) &&
 				strings.HasSuffix(filepath.Base(path), f.suffix) {
-				os.Remove(path)
+				_ = os.Remove(path)
 			}
 		}
 		return

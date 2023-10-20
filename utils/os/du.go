@@ -1,4 +1,4 @@
-package utils
+package os
 
 import "syscall"
 
@@ -12,7 +12,10 @@ type DiskUsage struct {
 func NewDiskUsage(volumePath string) *DiskUsage {
 
 	var stat syscall.Statfs_t
-	syscall.Statfs(volumePath, &stat)
+	err := syscall.Statfs(volumePath, &stat)
+	if err != nil {
+		return nil
+	}
 	return &DiskUsage{&stat}
 }
 

@@ -1,4 +1,4 @@
-package httpclient
+package http
 
 import (
 	"bytes"
@@ -34,7 +34,7 @@ type ClientImpl struct {
 // Determine whether ClientImpl implements Client
 var _ Client = (*ClientImpl)(nil)
 
-var HTTPClient Client
+var C Client
 
 func (c *ClientImpl) Post(ctx context.Context, url string, body interface{}, reply interface{}, opts ...RequestOption) (err error) {
 	reader, err := bodyReader(body)
@@ -109,8 +109,9 @@ func (c *ClientImpl) handle(ctx context.Context, method string, url string, read
 		errStatusNotOK := fmt.Errorf("http code:%v url:%v", resp.StatusCode, url)
 		return errStatusNotOK
 	}
-
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
@@ -150,7 +151,7 @@ func InitClient(opts ...Option) Client {
 	for _, o := range opts {
 		o(&opt)
 	}
-	HTTPClient = &ClientImpl{
+	C = &ClientImpl{
 		client: &http.Client{
 			Transport: &http.Transport{
 				Proxy: http.ProxyFromEnvironment,
@@ -168,7 +169,7 @@ func InitClient(opts ...Option) Client {
 		},
 		options: opt,
 	}
-	return HTTPClient
+	return C
 }
 
 func getPathKey(path string) string {

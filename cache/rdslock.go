@@ -71,7 +71,6 @@ func (lock *Lock) tryLock(ctx context.Context) (ok bool, err error) {
 			continue
 		}
 		ok = true
-		fmt.Println("lock sucess")
 		break
 	}
 	f := func() {

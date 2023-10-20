@@ -1,4 +1,4 @@
-package ping
+package net
 
 import (
 	"encoding/binary"

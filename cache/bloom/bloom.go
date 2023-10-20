@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/colinrs/pkgx/md5"
+	"github.com/colinrs/pkgx/utils/md5"
 )
 
 type Cache interface {

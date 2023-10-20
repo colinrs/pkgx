@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 )
 
@@ -13,6 +14,6 @@ func Example() {
 		fmt.Println(err.Error())
 		return
 	}
-	resLock.TryLock("resource", "token", 30)
+	_, _ = resLock.TryLock(context.Background(), "resource", "token", 30)
 	select {}
 }

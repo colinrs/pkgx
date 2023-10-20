@@ -101,7 +101,7 @@ func (c *connLogger) connect() error {
 		}
 
 		if tcpConn, ok := conn.(*net.TCPConn); ok {
-			tcpConn.SetKeepAlive(true)
+			_ = tcpConn.SetKeepAlive(true)
 		}
 		c.innerWriter = conn
 		return nil

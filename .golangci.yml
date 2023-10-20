@@ -1,0 +1,73 @@
+run:
+  # timeout for analysis, e.g. 30s, 5m
+  deadline: 5m
+  skip-files:
+    # Don't lint generated code
+    - ".*.gen.go$"
+    - ".*.pb.go$"
+    - ".*_test.go$"
+
+# all available settings of specific linters
+linters-settings:
+  errcheck:
+    # report about not checking of errors in type assertions, a := b.(MyStruct)
+    check-type-assertions: true
+
+  nakedret:
+    # make an issue if func has more lines of code than this setting and it has
+    # naked returns; default is 30
+    max-func-lines: 50
+
+  funlen:
+    statements: 240
+    lines: 240
+
+  lll:
+    # we prefer 80 chars per line, but sometimes it's clearer to keep the code
+    # in one line, thus, we let the hard limit a bit larger than 80.
+    line-length: 120
+    tab-width: 2
+
+  govet:
+    check-shadowing: false
+
+linters:
+  disable-all: true # disable those linters we don't want
+
+  enable:
+    # default linters recommended by golangci-lint
+    - errcheck
+    - gosimple
+    - govet
+    - unused
+    - rowserrcheck
+    - sqlclosecheck
+    - asciicheck # check that our code does not contain non-ASCII identifiers
+    - bodyclose # checks whether HTTP response body is closed successfully
+    - dogsled # checks for too many blank identifiers (e.g. x, , , _, := f())
+    - durationcheck # check for two durations multiplied together
+    - errorlint # find code that use error wrapping incorrectly since in Go 1.13
+    - funlen # detection of long functions
+    - gochecknoinits # checks that no init functions are present in Go code
+    - goconst # finds repeated strings that could be replaced by a constant
+    - gocyclo # Computes and checks the cyclomatic complexity of functions
+    - goimports # checks unused imports and some formatting
+    - gosec # inspects source code for security problems
+    - importas # enforces consistent import aliases
+    - lll # reports long lines
+    - makezero # finds slice declarations with non-zero initial length
+    - misspell # finds commonly misspelled English words in comments
+    - nilerr # finds the code that incorrectly returns nil error
+    - noctx # noctx finds sending http request without context.Context
+    - nolintlint # reports ill-formed or insufficient nolint directives
+    - predeclared # find code that shadows one of Go's predeclared identifiers
+    - revive # 6x faster, drop-in replacement of golint
+    - stylecheck # stylecheck is a replacement for golint
+    - unconvert # remove unnecessary type conversions
+    - wastedassign # wastedassign finds wasted assignment statements
+    - whitespace # detection of leading and trailing whitespace
+
+issues:
+  exclude:
+    - ".*imported but not used.*"
+    - ".*increment-decrement.*"

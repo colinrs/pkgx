@@ -18,17 +18,17 @@ func testConsoleCalls(bl *LocalLogger) {
 
 func TestConsole(t *testing.T) {
 	log1 := NewLogger()
-	log1.SetLogger("console", "")
+	_ = log1.SetLogger("console", "")
 	testConsoleCalls(log1)
 
 	log2 := NewLogger()
-	log2.SetLogger("console", `{"level":"EROR"}`)
+	_ = log2.SetLogger("console", `{"level":"EROR"}`)
 	testConsoleCalls(log2)
 }
 
 // Test console without color
 func TestNoColorConsole(t *testing.T) {
 	log := NewLogger()
-	log.SetLogger("console", `{"color":false}`)
+	_ = log.SetLogger("console", `{"color":false}`)
 	testConsoleCalls(log)
 }
