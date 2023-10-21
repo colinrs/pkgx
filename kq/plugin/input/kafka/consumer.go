@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"context"
-
 	"github.com/colinrs/pkgx/kq/core"
 )
 
@@ -18,9 +17,14 @@ func newConsumer() *consumer {
 }
 
 func (c *consumer) Consumer(ctx context.Context) (*core.InputMessage, error) {
-	return nil, nil
+	m := core.NewInputMessage()
+	return m, nil
 }
 
 func (c *consumer) Close(ctx context.Context) error {
+	return nil
+}
+
+func (c *consumer) CommitMessage(ctx context.Context, inputMessage *core.InputMessage) error {
 	return nil
 }

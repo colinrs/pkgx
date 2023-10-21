@@ -26,3 +26,9 @@ func Recover(cleanups ...func()) {
 		fmt.Printf("recove:%+v, stack:%s\n", p, utils.Stack())
 	}
 }
+
+// RunSafeWithRecover runs the given fn, recovers if fn panics.
+func RunSafeWithRecover(fn func(), recover func()) {
+	defer recover()
+	fn()
+}

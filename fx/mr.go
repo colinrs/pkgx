@@ -101,8 +101,6 @@ func (concurrent *Concurrent) Run() error {
 		concurrent.err = ctx.Err()
 		return ctx.Err()
 	}
-	concurrent.err = nil
-	return nil
 }
 
 func (concurrent *Concurrent) Result() ([][]interface{}, error) {

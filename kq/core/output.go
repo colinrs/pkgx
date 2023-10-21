@@ -2,15 +2,16 @@ package core
 
 import (
 	"context"
-	"sync"
 )
 
 type OutputMessage struct {
-	data interface{}
-	done sync.Mutex
+	Ctx  context.Context
+	Data interface{}
 }
 
 type Output interface {
-	SendOutput(ctx context.Context, msg *OutputMessage) error
+	SendOutput(ctx context.Context, message *OutputMessage) error
+	OnDone(cxt context.Context, message *OutputMessage)
+	OnError(cxt context.Context, message *OutputMessage, err error)
 	Close(ctx context.Context) error
 }

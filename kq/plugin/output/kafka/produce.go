@@ -49,3 +49,10 @@ func (p *producer) SendOutput(ctx context.Context, msg *core.OutputMessage) erro
 func (p *producer) Close(ctx context.Context) error {
 	return p.client.Close()
 }
+
+func (p *producer) OnDone(cxt context.Context, message *core.OutputMessage) {
+
+}
+func (p *producer) OnError(cxt context.Context, message *core.OutputMessage, err error) {
+
+}
