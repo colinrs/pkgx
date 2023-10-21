@@ -1,0 +1,5 @@
+package kq
+
+func New() {
+
+}
