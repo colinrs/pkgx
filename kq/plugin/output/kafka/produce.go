@@ -25,7 +25,7 @@ func newProducer() *producer {
 
 	client, err := sarama.NewSyncProducer([]string{"127.0.0.1:9092"}, config)
 	if err != nil {
-		fmt.Println(err)
+		return nil
 	}
 	return &producer{client: client}
 }

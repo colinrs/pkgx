@@ -25,7 +25,7 @@ func example() {
 type T struct {
 }
 
-func (t *T) Process(m core.Message) (core.Message, error) {
+func (t *T) Process(m core.Message) (*core.Message, error) {
 
 	return nil, nil
 }

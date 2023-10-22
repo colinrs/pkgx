@@ -94,25 +94,25 @@ func (k *KQ) SetOutput(ctx context.Context, output core.Output) *KQ {
 
 func (k *KQ) Run(ctx context.Context) error {
 	k.kqStatus.Store(kqStatusRunning)
-	goSafe.RunSafeWithRecover(func() {
+	goSafe.GoSafeWithRecover(func() {
 		err := k.inputMessage(ctx)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
 	}, kqRecover())
-	goSafe.RunSafeWithRecover(func() {
+	goSafe.GoSafeWithRecover(func() {
 		err := k.commitMessage(ctx)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
 	}, kqRecover())
-	goSafe.RunSafeWithRecover(func() {
+	goSafe.GoSafeWithRecover(func() {
 		err := k.inputMessageExtractor(ctx)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
 	}, kqRecover())
-	goSafe.RunSafeWithRecover(func() {
+	goSafe.GoSafeWithRecover(func() {
 		err := k.extractorMessageProcess(ctx)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -152,7 +152,7 @@ func (k *KQ) inputMessageExtractor(ctx context.Context) error {
 				return nil
 			}
 			k.limitGoroutines.Acquire()
-			goSafe.RunSafeWithRecover(func() {
+			goSafe.GoSafeWithRecover(func() {
 				defer k.limitGoroutines.Release()
 				extractorMessage, err := k.extractor.Unmarshal(ctx, inputMessage)
 				iMessage := getInternalMessage()
@@ -181,7 +181,7 @@ func (k *KQ) extractorMessageProcess(ctx context.Context) error {
 				return nil
 			}
 			k.limitGoroutines.Acquire()
-			goSafe.RunSafeWithRecover(func() {
+			goSafe.GoSafeWithRecover(func() {
 				defer k.limitGoroutines.Release()
 				outPutMessage, err := k.transformer.Process(ctx, iMessage.extractorMessage)
 				if err != nil {
@@ -209,7 +209,7 @@ func (k *KQ) transformerMessageOutPut(ctx context.Context) error {
 				return nil
 			}
 			k.limitGoroutines.Acquire()
-			goSafe.RunSafeWithRecover(func() {
+			goSafe.GoSafeWithRecover(func() {
 				defer k.limitGoroutines.Release()
 				err := k.output.SendOutput(ctx, iMessage.outPutMessage)
 				if err != nil {

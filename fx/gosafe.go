@@ -8,16 +8,22 @@ import (
 
 // GoSafe runs the given fn using another goroutine, recovers if fn panics.
 func GoSafe(fn func()) {
-	go RunSafe(fn)
+	go runSafe(fn)
 }
 
-// RunSafe runs the given fn, recovers if fn panics.
-func RunSafe(fn func()) {
-	defer Recover()
+// runSafe runs the given fn, recovers if fn panics.
+func runSafe(fn func()) {
+	defer recoverFunc()
 	fn()
 }
 
-func Recover(cleanups ...func()) {
+// runSafeWithRecover runs the given fn, recovers if fn panics.
+func runSafeWithRecover(fn func(), recover ...func()) {
+	defer recoverFunc(recover...)
+	fn()
+}
+
+func recoverFunc(cleanups ...func()) {
 	for _, cleanup := range cleanups {
 		cleanup()
 	}
@@ -27,8 +33,7 @@ func Recover(cleanups ...func()) {
 	}
 }
 
-// RunSafeWithRecover runs the given fn, recovers if fn panics.
-func RunSafeWithRecover(fn func(), recover func()) {
-	defer recover()
-	fn()
+// GoSafeWithRecover runs the given fn, recovers if fn panics.
+func GoSafeWithRecover(fn func(), recover ...func()) {
+	go runSafeWithRecover(fn, recover...)
 }

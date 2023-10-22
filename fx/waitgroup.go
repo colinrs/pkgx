@@ -34,7 +34,7 @@ func (g *RoutineGroup) Run(fn func()) {
 	}()
 }
 
-// RunSafe runs the given fn in RoutineGroup, and avoid panics.
+// runSafe runs the given fn in RoutineGroup, and avoid panics.
 // Don't reference the variables from outside,
 // because outside variables can be changed by other goroutines
 func (g *RoutineGroup) RunGoSafe(fn func()) {
