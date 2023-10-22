@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+
 	"github.com/colinrs/pkgx/kq/core"
 )
 
