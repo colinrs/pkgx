@@ -94,30 +94,36 @@ func (k *KQ) SetOutput(ctx context.Context, output core.Output) *KQ {
 
 func (k *KQ) Run(ctx context.Context) error {
 	k.kqStatus.Store(kqStatusRunning)
-	goSafe.RunSafeWithRecover(func() {
+	goSafe.GoSafeWithRecover(func() {
 		err := k.inputMessage(ctx)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-	}, kqRecover())
-	goSafe.RunSafeWithRecover(func() {
+	}, kqRecover(inputMessageEventName))
+	goSafe.GoSafeWithRecover(func() {
 		err := k.commitMessage(ctx)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-	}, kqRecover())
-	goSafe.RunSafeWithRecover(func() {
+	}, kqRecover(commitMessageEventName))
+	goSafe.GoSafeWithRecover(func() {
 		err := k.inputMessageExtractor(ctx)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-	}, kqRecover())
-	goSafe.RunSafeWithRecover(func() {
+	}, kqRecover(inputMessageExtractorEventName))
+	goSafe.GoSafeWithRecover(func() {
 		err := k.extractorMessageProcess(ctx)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-	}, kqRecover())
+	}, kqRecover(extractorMessageProcessEventName))
+	goSafe.GoSafeWithRecover(func() {
+		err := k.transformerMessageOutPut(ctx)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	}, kqRecover(transformerMessageOutPutEventName))
 	return nil
 }
 
@@ -152,8 +158,7 @@ func (k *KQ) inputMessageExtractor(ctx context.Context) error {
 				return nil
 			}
 			k.limitGoroutines.Acquire()
-			goSafe.RunSafeWithRecover(func() {
-				defer k.limitGoroutines.Release()
+			goSafe.GoSafeWithRecover(func() {
 				extractorMessage, err := k.extractor.Unmarshal(ctx, inputMessage)
 				iMessage := getInternalMessage()
 				iMessage.inputMessage = inputMessage
@@ -165,7 +170,9 @@ func (k *KQ) inputMessageExtractor(ctx context.Context) error {
 					k.extractor.OnDone(ctx, inputMessage)
 					k.extractorMessageChan <- iMessage
 				}
-			}, kqRecover())
+			}, kqRecover(inputMessageExtractorEventName, func() {
+				k.limitGoroutines.Release()
+			}))
 		}
 	}
 	return nil
@@ -181,7 +188,7 @@ func (k *KQ) extractorMessageProcess(ctx context.Context) error {
 				return nil
 			}
 			k.limitGoroutines.Acquire()
-			goSafe.RunSafeWithRecover(func() {
+			goSafe.GoSafeWithRecover(func() {
 				defer k.limitGoroutines.Release()
 				outPutMessage, err := k.transformer.Process(ctx, iMessage.extractorMessage)
 				if err != nil {
@@ -193,7 +200,9 @@ func (k *KQ) extractorMessageProcess(ctx context.Context) error {
 					iMessage.extractorMessage = nil
 					k.outPutMessageChanel <- iMessage
 				}
-			}, kqRecover())
+			}, kqRecover(transformerMessageOutPutEventName, func() {
+				k.limitGoroutines.Release()
+			}))
 		}
 	}
 	return nil
@@ -209,8 +218,7 @@ func (k *KQ) transformerMessageOutPut(ctx context.Context) error {
 				return nil
 			}
 			k.limitGoroutines.Acquire()
-			goSafe.RunSafeWithRecover(func() {
-				defer k.limitGoroutines.Release()
+			goSafe.GoSafeWithRecover(func() {
 				err := k.output.SendOutput(ctx, iMessage.outPutMessage)
 				if err != nil {
 					k.output.OnError(ctx, iMessage.outPutMessage, err)
@@ -221,7 +229,9 @@ func (k *KQ) transformerMessageOutPut(ctx context.Context) error {
 				iMessage.inputMessage = nil
 				iMessage.outPutMessage = nil
 				putInternalMessage(iMessage)
-			}, kqRecover())
+			}, kqRecover(transformerMessageOutPutEventName, func() {
+				k.limitGoroutines.Release()
+			}))
 		}
 	}
 	return nil

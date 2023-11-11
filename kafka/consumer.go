@@ -2,28 +2,27 @@ package kafka
 
 import (
 	"context"
-	"errors"
 	"log"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 	"time"
-
-	"github.com/colinrs/pkgx/logger"
 
 	"github.com/IBM/sarama"
 )
 
+type ConsumeFunc func(sarama.ConsumerGroupSession, sarama.ConsumerGroupClaim) error
+
+// Consumer is to consume message from kafka and process it.
 type Consumer interface {
-	Transform(ctx context.Context, msg *sarama.Message) (transformedResult interface{}, err error)
-	Process(ctx context.Context, msg *sarama.Message) error
+	ConsumeMessage() (*Message, bool)
+	Stop(ctx context.Context)
 }
 
-type ConsumerInstance struct {
-	Client sarama.ConsumerGroup
-	ready  chan bool
-}
-
-// NewConsumer will return a kafka consumer
-func NewConsumer(ctx context.Context, brokers []string, username, password, groupID string,
-	options ...Option) (*ConsumerInstance, error) {
+// NewConsumer will return a kafka consumer and you can use Process to consume messages.
+func NewConsumer(ctx context.Context, brokers []string,
+	username, password, groupID string, topics []string, options ...Option) (Consumer, error) {
 	opts := &Options{}
 	for _, option := range options {
 		option(opts)
@@ -33,9 +32,6 @@ func NewConsumer(ctx context.Context, brokers []string, username, password, grou
 	config.Version = sarama.V1_0_0_0
 	config.Consumer.Offsets.Initial = sarama.OffsetNewest
 	config.Consumer.MaxProcessingTime = 2 * time.Second
-	if len(opts.consumerInterceptors) > 0 {
-		config.Consumer.Interceptors = opts.consumerInterceptors
-	}
 	if username != "" {
 		config.Version = sarama.V2_3_0_0
 		config.Net.SASL.Enable = true
@@ -50,77 +46,124 @@ func NewConsumer(ctx context.Context, brokers []string, username, password, grou
 			config.Net.SASL.SCRAMClientGeneratorFunc = nil
 		}
 	}
-	saramaConsumer, err := sarama.NewConsumerGroup(brokers, groupID, config)
+	client, err := sarama.NewConsumerGroup(brokers, groupID, config)
 	if err != nil {
+		log.Printf("Failed to create consumer group client: err=[%v]", err)
 		return nil, err
 	}
-	c := &ConsumerInstance{
-		Client: saramaConsumer,
+
+	//listen client's errors.
+	go func() {
+		for err := range client.Errors() {
+			log.Printf("Consumer got errors. err=[%v]", err)
+		}
+	}()
+	c := &consumer{
+		client:  client,
+		groupID: groupID,
+		topics:  topics,
+		message: make(chan *Message),
 	}
+	go c.consumeMessage(ctx)
 	return c, nil
 }
 
-func (c *ConsumerInstance) Message(ctx context.Context) error {
+type consumer struct {
+	client  sarama.ConsumerGroup
+	groupID string
+	message chan *Message
+	topics  []string
+}
 
+func (c *consumer) Setup(sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func (c *ConsumerInstance) StartConcurrentConsume(ctx context.Context, topics []string, consumerAPI Consumer) error {
-	go func() {
-		for {
-			// `Consume` should be called inside an infinite loop, when a
-			// server-side rebalance happens, the consumer session will need to be
-			// recreated to get the new claims
-			if err := c.Client.Consume(ctx, topics, c); err != nil {
-				if errors.Is(err, sarama.ErrClosedConsumerGroup) {
-					return
-				}
-				log.Panicf("Error from consumer: %v", err)
-			}
-			// check if context was cancelled, signaling that the consumer should stop
-			if ctx.Err() != nil {
-				return
-			}
-			c.ready = make(chan bool)
-		}
-	}()
+func (c *consumer) Cleanup(sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-// Setup is run at the beginning of a new session, before ConsumeClaim
-func (c *ConsumerInstance) Setup(sarama.ConsumerGroupSession) error {
-	// Mark the c as ready
-	close(c.ready)
-	return nil
-}
-
-// Cleanup is run at the end of a session, once all ConsumeClaim goroutines have exited
-func (c *ConsumerInstance) Cleanup(sarama.ConsumerGroupSession) error {
-	return nil
-}
-
-// ConsumeClaim must start a consumer loop of ConsumerGroupClaim's Messages().
-// Once the Messages() channel is closed, the Handler must finish its processing
-// loop and exit.
-func (c *ConsumerInstance) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	// NOTE:
-	// Do not move the code below to a goroutine.
-	// The `ConsumeClaim` itself is called within a goroutine, see:
-	// https://github.com/IBM/sarama/blob/main/consumer_group.go#L27-L29
+func (c *consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for {
 		select {
 		case message, ok := <-claim.Messages():
 			if !ok {
+				log.Printf("message channel was closed")
 				return nil
 			}
-			logger.Info("Message claimed: value = %s, timestamp = %v, topic = %s",
-				string(message.Value), message.Timestamp, message.Topic)
-			session.MarkMessage(message, "")
-		// Should return when `session.Context()` is done.
-		// If not, will raise `ErrRebalanceInProgress` or `read tcp <ip>:<port>: i/o timeout` when kafka rebalance. see:
-		// https://github.com/IBM/sarama/issues/1192
+			log.Printf("Message claimed: value = %s, timestamp = %v, topic = %s", string(message.Value), message.Timestamp, message.Topic)
+			c.message <- &Message{
+				consumerMessage: message,
+				session:         session,
+			}
 		case <-session.Context().Done():
+			log.Printf("topics:%+v, session done", c.topics)
 			return nil
 		}
 	}
+}
+
+// consumeMessage begins to consume messages from kafka in topics.
+func (c *consumer) consumeMessage(parentCtx context.Context) {
+	ctx, cancel := context.WithCancel(parentCtx)
+	wg := &sync.WaitGroup{}
+	topics := c.topics
+	go func() {
+		wg.Add(1)
+		defer wg.Done()
+		for {
+			select {
+			case <-parentCtx.Done():
+				log.Printf("Consume parentCtx was cancel |topics=%v\n", topics)
+				return
+			default:
+				if err := c.client.Consume(ctx, topics, c); err != nil {
+					log.Printf("error occur from consumer topics %s: err=[%v]", topics, err)
+				}
+				// check if context was cancelled, signaling that the consumer should stop
+				if ctx.Err() != nil {
+					log.Printf("consumer exit. topics:%+v, err=[%v]", topics, ctx.Err())
+					return
+				}
+				log.Printf("reconnect kafka topics:%+v", topics)
+			}
+		}
+	}()
+
+	sigterm := make(chan os.Signal, 1)
+	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
+	select {
+	case <-ctx.Done():
+		log.Println("consumer terminating: context cancelled")
+	case <-sigterm:
+		log.Println("consumer terminating: via signal")
+	}
+	cancel()
+	wg.Wait()
+	c.Stop(ctx)
+}
+
+func (c *consumer) Stop(_ context.Context) {
+	close(c.message)
+	if err := c.client.Close(); err != nil {
+		log.Printf("failed to close consumer client: err=[%v]", err)
+	}
+}
+
+func (c *consumer) ConsumeMessage() (*Message, bool) {
+	msg, end := <-c.message
+	return msg, end
+}
+
+type Message struct {
+	consumerMessage *sarama.ConsumerMessage
+	session         sarama.ConsumerGroupSession
+}
+
+func (m *Message) ConsumerMessage() *sarama.ConsumerMessage {
+	return m.consumerMessage
+}
+
+func (m *Message) Session() sarama.ConsumerGroupSession {
+	return m.session
 }
