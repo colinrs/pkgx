@@ -89,7 +89,7 @@ func IsFileExists(path string) bool {
 
 }
 
-//IsNum judges string is number or not.
+// IsNum judges string is number or not.
 func IsNum(a string) bool {
 	reg, _ := regexp.Compile("^\\d+$")
 	return reg.MatchString(a)
